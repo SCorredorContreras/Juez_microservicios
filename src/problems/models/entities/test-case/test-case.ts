@@ -1,10 +1,10 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Problem } from "../problem/problem";
 
 @Entity("TestCase", { schema: "public" })
 export class TestCase {
 
-    @PrimaryColumn("uuid", { name: "cod_test" })
+    @PrimaryGeneratedColumn("uuid", { name: "cod_test" })
     public codTestCase: string;
 
     @Column({ name: "input_test", type: "varchar" })

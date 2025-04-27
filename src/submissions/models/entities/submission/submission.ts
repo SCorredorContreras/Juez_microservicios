@@ -1,10 +1,10 @@
 import { Problem } from "src/problems/models/entities/problem/problem";
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity("Submission", { schema: "public" })
 export class Submission {
 
-    @PrimaryColumn("uuid", { name: "cod_submission" })
+    @PrimaryGeneratedColumn("uuid", { name: "cod_submission" })
     public codSubmission: string;
 
     @Column({ name: "sourceCode", type: "varchar" })
