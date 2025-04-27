@@ -1,4 +1,6 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { TestCase } from "../test-case/test-case";
+import { Submission } from "src/submissions/models/entities/submission/submission";
 
 @Entity("problem", { schema: "public" })
 export class Problem {
@@ -62,10 +64,16 @@ export class Problem {
 
     }
 
+    @OneToMany(() => TestCase, testCase => testCase.problem, { cascade: true })
+    testCases: TestCase[];
+
+    @OneToMany(() => Submission, submission => submission.problem)
+    submissions: Submission[];
+
     @CreateDateColumn()
-    createAt: Date;
+    createdAt: Date;
 
     @UpdateDateColumn()
-    updateAt: Date;
+    updatedAt: Date;
 
 }

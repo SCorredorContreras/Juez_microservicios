@@ -1,21 +1,22 @@
-import { Column, Entity, PrimaryColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { Problem } from "../problem/problem";
 
 @Entity("TestCase", { schema: "public" })
 export class TestCase {
 
     @PrimaryColumn("uuid", { name: "cod_test" })
-    public codTestCase:string;
+    public codTestCase: string;
 
-    @Column({name:"input_test", type:"varchar"})
+    @Column({ name: "input_test", type: "varchar" })
     public input: string;
 
-    @Column({name:"expectedOutput_test", type:"varchar"})
+    @Column({ name: "expectedOutput_test", type: "varchar" })
     public expectedOutput: String;
 
-    @Column({name:"isSample", type:"boolean", default:false})
+    @Column({ name: "isSample", type: "boolean", default: false })
     public isSample: boolean;
 
-    @Column({name:"score_test", default:0})
+    @Column({ name: "score_test", default: 0 })
     public score: number;
 
     constructor(
@@ -24,7 +25,7 @@ export class TestCase {
         exp: string,
         isS: boolean = false,
         score: number = 0
-    ){
+    ) {
         this.codTestCase = cod;
         this.input = inp;
         this.expectedOutput = exp;
@@ -32,5 +33,9 @@ export class TestCase {
         this.score = score;
 
     }
+
+    @ManyToOne(() => Problem, problem => problem.testCases, { onDelete: 'CASCADE' })
+    @JoinColumn()
+    problem: Problem;
 
 }

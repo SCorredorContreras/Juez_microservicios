@@ -1,4 +1,5 @@
-import { Column, CreateDateColumn, Entity, PrimaryColumn } from "typeorm";
+import { Problem } from "src/problems/models/entities/problem/problem";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 
 @Entity("Submission", { schema: "public" })
 export class Submission {
@@ -6,34 +7,34 @@ export class Submission {
     @PrimaryColumn("uuid", { name: "cod_submission" })
     public codSubmission: string;
 
-    @Column({name:"sourceCode", type:"varchar"})
+    @Column({ name: "sourceCode", type: "varchar" })
     public sourceCode: string;
 
-    @Column({name:"language_problem", type:"varchar"})
+    @Column({ name: "language_problem", type: "varchar" })
     public language: string;
 
-    @Column({name:"language_id", type:"integer"})
+    @Column({ name: "language_id", type: "integer" })
     public languageId: number;
 
-    @Column({name:"status_submission", type:"varchar", default:"pending"})
+    @Column({ name: "status_submission", type: "varchar", default: "pending" })
     public status: string;
 
-    @Column({name:"judge0Token", type:"varchar", nullable:true})
+    @Column({ name: "judge0Token", type: "varchar", nullable: true })
     public judge0Token: string;
 
-    @Column({name:"result", type:"jsonb", nullable:true})
+    @Column({ name: "result", type: "jsonb", nullable: true })
     public result: any;
 
-    @Column({name:"executionTime", type:"float", nullable:true})
+    @Column({ name: "executionTime", type: "float", nullable: true })
     public executionTime: number;
 
-    @Column({name:"memoryUsage", type:"integer", nullable:true})
+    @Column({ name: "memoryUsage", type: "integer", nullable: true })
     public memoryUsage: number;
 
-    @Column({name:"score_submission", type:"integer", nullable:true})
+    @Column({ name: "score_submission", type: "integer", nullable: true })
     public score: number;
 
-    @Column({name:"userId", nullable:true})
+    @Column({ name: "userId", nullable: true })
     public userId: string;
 
     constructor(
@@ -48,7 +49,7 @@ export class Submission {
         memUsage: number,
         score: number,
         userId: string
-    ){
+    ) {
         this.codSubmission = cod;
         this.sourceCode = src;
         this.language = lang;
@@ -62,7 +63,11 @@ export class Submission {
         this.userId = userId;
     }
 
+    @ManyToOne(() => Problem, problem => problem.submissions)
+    @JoinColumn()
+    problem: Problem;
+
     @CreateDateColumn()
     submittedAt: Date;
-   
+
 }
