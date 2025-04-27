@@ -11,7 +11,7 @@ export class TestCase {
     public input: string;
 
     @Column({ name: "expectedOutput_test", type: "varchar" })
-    public expectedOutput: String;
+    public expectedOutput: string;
 
     @Column({ name: "isSample", type: "boolean", default: false })
     public isSample: boolean;
