@@ -13,8 +13,12 @@ async function bootstrap() {
     .setVersion('1.0')
     .addTag('cats')
     .build();
-  const documentFactory = SwaggerModule.createDocument(app, config);
+  const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);
+
+  await app.setGlobalPrefix('api')
+
+  app.enableCors();
 
   await app.listen(puerto, () => {
     console.log("servidor funcionando en el puerto: " + puerto)
