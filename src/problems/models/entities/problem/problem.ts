@@ -2,7 +2,7 @@ import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Up
 import { TestCase } from "../test-case/test-case";
 import { Submission } from "src/submissions/models/entities/submission/submission";
 
-@Entity("problem", { schema: "public" })
+@Entity("Problem", { schema: "public" })
 export class Problem {
     @PrimaryGeneratedColumn("uuid", { name: "cod_problema" })
     public codProblem: string;
@@ -28,8 +28,8 @@ export class Problem {
     @Column({ name: "memoryLimit", type: "integer" })
     public memoryLimit: number;
 
-    @Column({ name: "dificulty_problem", type: "varchar" })
-    public dificulty: string;
+    @Column({ name: "difficulty_problem", type: "varchar" })
+    public difficulty: string;
 
     @Column({ name: "isPublic", type: "boolean", default: true })
     public isPublic: boolean;
@@ -58,7 +58,7 @@ export class Problem {
         this.constraints = cons;
         this.timeLimit = time;
         this.memoryLimit = memory;
-        this.dificulty = diff;
+        this.difficulty = diff;
         this.isPublic = pub;
         this.tags = tags;
 

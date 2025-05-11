@@ -6,6 +6,7 @@ import { DataSource } from 'typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
 @Module({
+    
     imports: [],
     controllers: [],
     providers: [

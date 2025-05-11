@@ -8,10 +8,10 @@ async function bootstrap() {
   let puerto: number = Number(process.env.PUERTO_SERVIDOR);
 
   const config = new DocumentBuilder()
-    .setTitle('Cats example')
-    .setDescription('The cats API description')
+    .setTitle('Juez')
+    .setDescription('The Juez API description')
     .setVersion('1.0')
-    .addTag('cats')
+    .addTag('Juez')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);
