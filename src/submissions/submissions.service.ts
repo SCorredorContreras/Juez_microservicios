@@ -17,9 +17,6 @@ interface TestCaseResult {
     exitCode: number;
 }
 
-
-
-
 @Injectable()
 export class SubmissionsService {
 
@@ -67,7 +64,7 @@ export class SubmissionsService {
         });
 
     }
-
+    
     public async findOne(id: string): Promise<Submission> {
         const submission = await this.submissionsRepository.findOne({
             where: { codSubmission: id },
@@ -124,11 +121,7 @@ export class SubmissionsService {
                     memoryLimit: problem.memoryLimit,   // en KB
                 });
 
-                // Esperar un poco para que Judge0 procese la solicitud
-                await new Promise(resolve => setTimeout(resolve, 2000));
-
-                // Obtener resultado
-                const judge0Result = await this.judge0Service.getSubmissionResult(token);
+                const judge0Result = await this.waitForJudge0(token);
 
                 // Determinar estado del caso de prueba
                 let testCaseStatus = 'error';
@@ -194,5 +187,20 @@ export class SubmissionsService {
             await this.submissionsRepository.save(submission);
         }
     }
+
+    private async waitForJudge0(token: string, maxTries = 10, delay = 1000) {
+        for (let i = 0; i < maxTries; i++) {
+          const result = await this.judge0Service.getSubmissionResult(token);
+          const finished = [3, 4, 5, 6, 11, 12]; // Estados finales
+      
+          if (finished.includes(result.status.id)) {
+            return result;
+          }
+      
+          await new Promise(res => setTimeout(res, delay));
+        }
+      
+        throw new Error('Judge0 result timed out.');
+      }
 
 }

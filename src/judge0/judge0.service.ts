@@ -5,6 +5,7 @@ import axios from 'axios';
 
 @Injectable()
 export class Judge0Service {
+   
 
     private readonly baseUrl: string;
     private readonly apiKey: string;
@@ -13,7 +14,7 @@ export class Judge0Service {
     private readonly defaultMemoryLimit: number;
 
     constructor(private configService: ConfigService) {
-        this.baseUrl = this.configService.get<string>('JUDGE0_API_URL', 'http://localhost:2358');
+        this.baseUrl = this.configService.get<string>('JUDGE0_API_URL','');
         this.apiKey = this.configService.get<string>('JUDGE0_API_KEY', '');
         this.apiSecret = this.configService.get<string>('JUDGE0_API_SECRET', '');
         this.defaultTimeout = this.configService.get<number>('JUDGE0_DEFAULT_TIMEOUT', 10); // 10 segundos
@@ -37,9 +38,11 @@ export class Judge0Service {
             stdin: stdin || '',
             expected_output: expectedOutput,
             cpu_time_limit: (timeLimit ?? 1000) / 1000, // en segundos, 1000 ms = 1s
-            memory_limit: memoryLimit ?? 128000, // en KB
+            memory_limit: memoryLimit ?? 256000, // en KB
             number_of_runs: 1,
         };
+
+        
 
         try {
             const headers = this.getHeaders();
@@ -48,6 +51,8 @@ export class Judge0Service {
                 submissionData,
                 { headers: this.getHeaders() }
             );
+
+            console.log("aqui esta el token", response.data.token)
 
             return response.data.token;
         } catch (error) {

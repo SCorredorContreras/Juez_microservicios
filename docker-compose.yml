@@ -1,0 +1,23 @@
+version: '1.0'
+
+volumes:
+  db_data:
+services:
+  postgres:
+    image: postgres:17
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: ${USER_DB}
+      POSTGRES_PASSWORD: ${PASSWORD}
+      POSTGRES_DB: ${DATA_BASE}
+    ports:
+      - 5432:5433
+    volumes:
+      - db_data:/var/lib/postgresql/data
+  app:
+    build: .
+    container_name: ServerBackend
+    ports:
+      - 3213:3213
+    depends_on:
+      - postgres
