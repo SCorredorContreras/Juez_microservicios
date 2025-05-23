@@ -31,4 +31,20 @@ export class SubmissionsController {
     findOne(@Param('id') id: string) {
         return this.submissionsService.findOne(id);
     }
+
+    @Get("all/:id")
+    findAllById(
+        @Query('problemId') problemId?: string,
+        @Query('userId') userId?: string,
+    ) {
+        if (problemId) {
+            return this.submissionsService.findByProblem(problemId);
+        }
+
+        if (userId) {
+            return this.submissionsService.findByUser(userId);
+        }
+
+        return this.submissionsService.findAll();
+    }
 }

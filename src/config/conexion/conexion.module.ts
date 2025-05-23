@@ -20,16 +20,18 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
                     const poolConexion = new DataSource({
                         type: 'postgres',
                         host: String(process.env.HOST),
-                        port: Number(process.env.PUERTO),
-                        username: String(process.env.USUARIO),
-                        database: String(process.env.BASE_DATOS),
-                        password: String(process.env.CLAVE),
+                        port: Number(process.env.PORT),
+                        username: String(process.env.USER_DB),
+                        database: String(process.env.DATA_BASE),
+                        password: String(process.env.PASSWORD),
                         synchronize: true,
                         logging: true,
                         namingStrategy: new SnakeNamingStrategy(),
                         entities: [Problem, TestCase, Submission]
                     });
                     await poolConexion.initialize();
+
+                    
                     console.log('Conexión a la base de datos establecida correctamente' + String(process.env.BASE_DATOS));
                     return poolConexion;
 
