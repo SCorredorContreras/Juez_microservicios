@@ -203,4 +203,33 @@ export class SubmissionsService {
         throw new Error('Judge0 result timed out.');
       }
 
+
+      public async getUserScores(userIds: string[]): Promise<Record<string, number>> {
+        const scores = await this.submissionsRepository
+          .createQueryBuilder('submission')
+          .select('submission.userId', 'userId')
+          .addSelect('SUM(submission.score)', 'totalScore')
+          .where('submission.userId IN (:...userIds)', { userIds })
+          .andWhere('submission.status = :status', { status: 'accepted' })
+          .groupBy('submission.userId')
+          .getRawMany();
+    
+        return scores.reduce((acc, curr) => {
+          acc[curr.userId] = parseInt(curr.totalScore) || 0;
+          return acc;
+        }, {});
+      }
+    
+      public async getTopUsersByScore(limit: number = 10): Promise<{userId: string, totalScore: number}[]> {
+        return this.submissionsRepository
+          .createQueryBuilder('submission')
+          .select('submission.userId', 'userId')
+          .addSelect('SUM(submission.score)', 'totalScore')
+          .where('submission.status = :status', { status: 'accepted' })
+          .groupBy('submission.userId')
+          .orderBy('totalScore', 'DESC')
+          .limit(limit)
+          .getRawMany();
+      }
+
 }

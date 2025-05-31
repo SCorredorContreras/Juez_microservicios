@@ -32,4 +32,15 @@ export class SubmissionsController {
         return this.submissionsService.findOne(id);
     }
 
+
+    @Get('rankings')
+    getScoreRankings(@Query('limit') limit: number = 10) {
+        return this.submissionsService.getTopUsersByScore(limit);
+    }
+
+    @Post('scores')
+    getUserScores(@Body() body: { userIds: string[] }) {
+        return this.submissionsService.getUserScores(body.userIds);
+  }
+
 }
