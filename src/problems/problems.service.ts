@@ -1,131 +1,171 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { DataSource, Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Problem } from './models/entities/problem/problem';
-import { TestCase } from './models/entities/test-case/test-case';
 import { CreateProblemDto } from './dto/create-problem-dto';
+import { TestCasesService } from 'src/test-cases/test-cases.service';
+import { SubmissionsService } from 'src/submissions/submissions.service';
 
 @Injectable()
 export class ProblemsService {
-    private problemsRepository: Repository<Problem>;
-    private testCasesRepository: Repository<TestCase>;
+  constructor(
+    @InjectRepository(Problem)
+    private readonly problemRepository: Repository<Problem>,
+    private readonly testCasesService: TestCasesService,
+  ) {}
 
-    constructor(private poolConexion: DataSource) {
-        this.problemsRepository = poolConexion.getRepository(Problem);
-        this.testCasesRepository = poolConexion.getRepository(TestCase);
+  /**
+   * Crea un nuevo problema con sus test cases
+   */
+  async createProblem(createProblemDto: CreateProblemDto): Promise<Problem> {
+    const { testCases, ...problemData } = createProblemDto;
+    const problem = this.problemRepository.create(problemData);
+    const savedProblem = await this.problemRepository.save(problem);
+
+    if (testCases && testCases.length > 0) {
+      await this.testCasesService.createTestCasesForProblem(
+        testCases,
+        savedProblem,
+      );
     }
 
-    /**
-     * Creates a new problem with its test cases
-     * @param CreateProblemDto - Data transfer object containing problem details and test cases
-     * @returns The created problem with test cases
-     */
-    public async createProblem(CreateProblemDto: CreateProblemDto): Promise<Problem> {
-        const { testCases, ...problemData } = CreateProblemDto;
+    return this.getProblemWithDetails(savedProblem.codProblem);
+  }
 
-        // Create and save the problem
-        const problem = this.problemsRepository.create(problemData);
-        const savedProblem = await this.problemsRepository.save(problem);
+  /**
+   * Obtiene un problema por ID con todos sus test cases
+   */
+  async getProblemWithDetails(id: string): Promise<Problem> {
+    const problem = await this.problemRepository.findOne({
+      where: { codProblem: id },
+      relations: ['testCases'],
+    });
 
-        // Create and save test cases if provided
-        if (testCases && testCases.length > 0) {
-            const testCaseEntities = testCases.map(tc => {
-                return this.testCasesRepository.create({
-                    input: tc.input,
-                    expectedOutput: tc.expectedOutput,
-                    isSample: tc.isSample || false,
-                    score: tc.score || 0,
-                    problem: savedProblem,
-                });
-            });
-
-            await this.testCasesRepository.save(testCaseEntities);
-        }
-
-        return this.findOne(savedProblem.codProblem);
+    if (!problem) {
+      throw new NotFoundException(`Problem with ID ${id} not found`);
     }
 
-    /**
-     * Finds a problem by its ID including all test cases
-     * @param id - Problem ID
-     * @throws NotFoundException if problem not found
-     * @returns The requested problem
-     */
-    public async findOne(id: string): Promise<Problem> {
-        const problem = await this.problemsRepository.findOne({
-            where: { codProblem: id },
-            relations: ['testCases'],
-        });
+    return problem;
+  }
 
-        if (!problem) {
-            throw new NotFoundException(`Problem with ID ${id} not found`);
-        }
+  /**
+   * Alias para getProblemWithDetails (mantenemos compatibilidad)
+   */
+  async findOne(id: string): Promise<Problem> {
+    return this.getProblemWithDetails(id);
+  }
 
-        return problem;
+  /**
+   * Obtiene todos los problemas con filtros opcionales
+   * Solo incluye test cases de muestra por defecto
+   */
+  async findAllProblems(options?: {
+    isPublic?: boolean;
+    tags?: string[];
+    difficulty?: string;
+  }): Promise<Problem[]> {
+    const query = this.problemRepository
+      .createQueryBuilder('problem')
+      .leftJoinAndSelect(
+        'problem.testCases',
+        'testCase',
+        'testCase.isSample = :isSample',
+        { isSample: true },
+      );
+
+    if (options?.isPublic !== undefined) {
+      query.andWhere('problem.isPublic = :isPublic', {
+        isPublic: options.isPublic,
+      });
     }
 
-    /**
-     * Finds all problems with optional filters
-     * @param options - Filter options (isPublic: boolean, tags: string[])
-     * @returns List of problems (only sample test cases included by default)
-     */
-    public async findAll(options?: { isPublic?: boolean; tags?: string[] }): Promise<Problem[]> {
-        const query = this.problemsRepository.createQueryBuilder('problem')
-            .leftJoinAndSelect('problem.testCases', 'testCase', 'testCase.isSample = :isSample', { isSample: true });
-
-        if (options?.isPublic !== undefined) {
-            query.andWhere('problem.isPublic = :isPublic', { isPublic: options.isPublic });
-        }
-
-        if (options?.tags && options.tags.length > 0) {
-            query.andWhere('problem.tags && :tags', { tags: options.tags });
-        }
-
-        return query.getMany();
+    if (options?.tags && options.tags.length > 0) {
+      query.andWhere('problem.tags && :tags', { tags: options.tags });
     }
 
-    /**
-     * Updates a problem and its test cases
-     * @param id - Problem ID to update
-     * @param updateProblemDto - Updated problem data
-     * @returns The updated problem
-     */
-    public async update(id: string, updateProblemDto: CreateProblemDto): Promise<Problem> {
-        const problem = await this.findOne(id);
-
-        // Update problem properties
-        const { testCases, ...problemData } = updateProblemDto;
-        Object.assign(problem, problemData);
-
-        await this.problemsRepository.save(problem);
-
-        // Update test cases if provided
-        if (testCases && testCases.length > 0) {
-            // Delete existing test cases
-            await this.testCasesRepository.delete({ problem: { codProblem: id } });
-
-            // Create new test cases
-            const testCaseEntities = testCases.map(tc => {
-                return this.testCasesRepository.create({
-                    input: tc.input,
-                    expectedOutput: tc.expectedOutput,
-                    isSample: tc.isSample || false,
-                    score: tc.score || 0,
-                    problem: problem,
-                });
-            });
-
-            await this.testCasesRepository.save(testCaseEntities);
-        }
-
-        return this.findOne(id);
+    if (options?.difficulty) {
+      query.andWhere('problem.difficulty = :difficulty', {
+        difficulty: options.difficulty,
+      });
     }
 
-    /**
-     * Deletes a problem and its associated test cases (cascade)
-     * @param id - Problem ID to delete
-     */
-    public async remove(id: string): Promise<void> {
-        const problem = await this.findOne(id);
-        await this.problemsRepository.remove(problem);
+    return query.getMany();
+  }
+
+  /**
+   * Actualiza un problema y sus test cases
+   */
+  async updateProblem(
+    id: string,
+    updateProblemDto: CreateProblemDto,
+  ): Promise<Problem> {
+    const problem = await this.getProblemWithDetails(id);
+    const { testCases, ...problemData } = updateProblemDto;
+
+    Object.assign(problem, problemData);
+    await this.problemRepository.save(problem);
+
+    if (testCases) {
+      await this.testCasesService.updateTestCasesForProblem(id, testCases);
     }
+
+    return this.getProblemWithDetails(id);
+  }
+
+  /**
+   * Elimina un problema y sus test cases (por CASCADE)
+   */
+  async deleteProblem(id: string): Promise<void> {
+    const problem = await this.getProblemWithDetails(id);
+    await this.problemRepository.remove(problem);
+  }
+
+  /**
+   * Obtiene problemas por dificultad
+   */
+  async findByDifficulty(difficulty: string): Promise<Problem[]> {
+    return this.findAllProblems({ difficulty });
+  }
+
+  /**
+   * Obtiene problemas por categoría/tag
+   */
+  async findByCategory(tag: string): Promise<Problem[]> {
+    return this.findAllProblems({ tags: [tag] });
+  }
+
+  /**
+   * Obtiene problemas resueltos por el usuario
+   * (Implementación de ejemplo - ajustar según tu lógica real)
+   */
+  async findSolvedProblems(userId: string): Promise<Problem[]> {
+    return this.problemRepository
+      .createQueryBuilder('problem')
+      .innerJoin(
+        'problem.submissions',
+        'submission',
+        'submission.userId = :userId AND submission.verdict = :verdict',
+        {
+          userId,
+          verdict: 'ACCEPTED',
+        },
+      )
+      .getMany();
+  }
+
+  /**
+   * Obtiene problemas no resueltos por el usuario
+   * (Implementación de ejemplo - ajustar según tu lógica real)
+   */
+  async findUnsolvedProblems(userId: string): Promise<Problem[]> {
+    const solvedProblems = await this.findSolvedProblems(userId);
+    const solvedProblemIds = solvedProblems.map((p) => p.codProblem);
+
+    return this.problemRepository
+      .createQueryBuilder('problem')
+      .where('problem.codProblem NOT IN (:...solvedProblemIds)', {
+        solvedProblemIds,
+      })
+      .getMany();
+  }
 }

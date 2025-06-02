@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Problem } from 'src/problems/models/entities/problem/problem';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Problem } from "../problem/problem";
 
 @Entity("TestCase", { schema: "public" })
 export class TestCase {
