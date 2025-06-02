@@ -12,6 +12,13 @@ export class TestCasesService {
     this.testCasesRepository = poolConexion.getRepository(TestCase);
   }
 
+  /**
+   * Creates a new test case associated with a specific problem
+   * @param testCaseData DTO containing test case details
+   * @param problem The problem entity this test case belongs to
+   * @returns The created test case entity
+   */
+
   public async createTestCase(
     testCaseData: CreateTestCaseDto,
     problem: Problem,
@@ -25,6 +32,13 @@ export class TestCasesService {
     return this.testCasesRepository.save(testCase);
   }
 
+  /**
+   * Creates multiple test cases for a problem in a single operation
+   * @param testCases Array of test case DTOs
+   * @param problem The problem entity these test cases belong to
+   * @returns Array of created test case entities
+   */
+
   public async createTestCasesForProblem(
     testCases: CreateTestCaseDto[],
     problem: Problem,
@@ -35,6 +49,12 @@ export class TestCasesService {
     return createdTestCases;
   }
 
+  /**
+   * Replaces all existing test cases for a problem with new ones
+   * @param problemId ID of the problem to update
+   * @param testCases Array of new test case DTOs
+   * @returns Array of the newly created test case entities
+   */
   public async updateTestCasesForProblem(
     problemId: string,
     testCases: CreateTestCaseDto[],
@@ -45,6 +65,12 @@ export class TestCasesService {
     const problem = { codProblem: problemId } as Problem;
     return this.createTestCasesForProblem(testCases, problem);
   }
+
+  /**
+   * Retrieves all test cases associated with a specific problem
+   * @param problemId ID of the problem to get test cases for
+   * @returns Array of test case entities for the specified problem
+   */
 
   public async getTestCasesForProblem(problemId: string): Promise<TestCase[]> {
     return this.testCasesRepository.find({

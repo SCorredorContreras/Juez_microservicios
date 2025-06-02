@@ -15,7 +15,9 @@ export class ProblemsService {
   ) {}
 
   /**
-   * Crea un nuevo problema con sus test cases
+   * Creates a new problem with associated test cases
+   * @param createProblemDto DTO containing problem data and test cases
+   * @returns The created problem with all details including test cases
    */
   async createProblem(createProblemDto: CreateProblemDto): Promise<Problem> {
     const { testCases, ...problemData } = createProblemDto;
@@ -33,7 +35,10 @@ export class ProblemsService {
   }
 
   /**
-   * Obtiene un problema por ID con todos sus test cases
+   * Retrieves a problem by ID with all its test cases
+   * @param id Problem ID
+   * @throws NotFoundException if problem is not found
+   * @returns The requested problem with test cases
    */
   async getProblemWithDetails(id: string): Promise<Problem> {
     const problem = await this.problemRepository.findOne({
@@ -49,15 +54,18 @@ export class ProblemsService {
   }
 
   /**
-   * Alias para getProblemWithDetails (mantenemos compatibilidad)
+   * Alias for getProblemWithDetails (maintained for compatibility)
+   * @param id Problem ID
+   * @returns The requested problem with test cases
    */
   async findOne(id: string): Promise<Problem> {
     return this.getProblemWithDetails(id);
   }
 
   /**
-   * Obtiene todos los problemas con filtros opcionales
-   * Solo incluye test cases de muestra por defecto
+   * Retrieves all problems with optional filters
+   * @param options Filtering options (isPublic, tags, difficulty)
+   * @returns Array of problems (only includes sample test cases by default)
    */
   async findAllProblems(options?: {
     isPublic?: boolean;
@@ -93,7 +101,10 @@ export class ProblemsService {
   }
 
   /**
-   * Actualiza un problema y sus test cases
+   * Updates a problem and its test cases
+   * @param id Problem ID to update
+   * @param updateProblemDto Updated problem data including test cases
+   * @returns The updated problem with all details
    */
   async updateProblem(
     id: string,
@@ -113,7 +124,8 @@ export class ProblemsService {
   }
 
   /**
-   * Elimina un problema y sus test cases (por CASCADE)
+   * Deletes a problem and its associated test cases (via CASCADE)
+   * @param id Problem ID to delete
    */
   async deleteProblem(id: string): Promise<void> {
     const problem = await this.getProblemWithDetails(id);
@@ -121,22 +133,27 @@ export class ProblemsService {
   }
 
   /**
-   * Obtiene problemas por dificultad
+   * Retrieves problems by difficulty level
+   * @param difficulty Difficulty level to filter by
+   * @returns Array of problems matching the difficulty
    */
   async findByDifficulty(difficulty: string): Promise<Problem[]> {
     return this.findAllProblems({ difficulty });
   }
 
   /**
-   * Obtiene problemas por categoría/tag
+   * Retrieves problems by category/tag
+   * @param tag Category/tag to filter by
+   * @returns Array of problems matching the category
    */
   async findByCategory(tag: string): Promise<Problem[]> {
     return this.findAllProblems({ tags: [tag] });
   }
 
   /**
-   * Obtiene problemas resueltos por el usuario
-   * (Implementación de ejemplo - ajustar según tu lógica real)
+   * Retrieves problems solved by a specific user
+   * @param userId ID of the user
+   * @returns Array of problems the user has solved
    */
   async findSolvedProblems(userId: string): Promise<Problem[]> {
     return this.problemRepository
@@ -154,8 +171,9 @@ export class ProblemsService {
   }
 
   /**
-   * Obtiene problemas no resueltos por el usuario
-   * (Implementación de ejemplo - ajustar según tu lógica real)
+   * Retrieves problems not solved by a specific user
+   * @param userId ID of the user
+   * @returns Array of problems the user hasn't solved
    */
   async findUnsolvedProblems(userId: string): Promise<Problem[]> {
     const solvedProblems = await this.findSolvedProblems(userId);
